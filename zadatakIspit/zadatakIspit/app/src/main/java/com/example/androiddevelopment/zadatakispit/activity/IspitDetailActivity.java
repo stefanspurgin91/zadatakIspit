@@ -1,4 +1,4 @@
-package com.example.androiddevelopment.zadatakispit;
+package com.example.androiddevelopment.zadatakispit.activity;
 
 import android.app.Dialog;
 import android.app.NotificationManager;
@@ -20,26 +20,22 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.RatingBar;
 import android.widget.Toast;
+
+import com.example.androiddevelopment.zadatakispit.R;
+import com.example.androiddevelopment.zadatakispit.db.IspitORMLightHelper;
+import com.example.androiddevelopment.zadatakispit.db.model.Kontakt;
+import com.j256.ormlite.android.apptools.OpenHelperManager;
 
 import java.sql.SQLException;
 import java.util.List;
 
-
-
-import com.j256.ormlite.android.apptools.OpenHelperManager;
-
-import com.example.androiddevelopment.zadatakispit.db.PripremaORMLightHelper;
-import com.example.androiddevelopment.zadatakispit.db.model.Kontakt;
-import com.example.androiddevelopment.zadatakispit.db.model.Imenik;
-
-import static com.example.androiddevelopment.zadatakispit.IspitListActivity.NOTIF_STATUS;
-import static com.example.androiddevelopment.zadatakispit.IspitDetailActivity.NOTIF_TOAST;
+import static com.example.androiddevelopment.zadatakispit.activity.IspitDetailActivity.NOTIF_TOAST;
+import static com.example.androiddevelopment.zadatakispit.activity.IspitDetailActivity.NOTIF_STATUS;
 
 public class IspitDetailActivity extends AppCompatActivity {
 
-    private PripremaORMLightHelper databaseHelper;
+    private IspitORMLightHelper databaseHelper;
     private SharedPreferences prefs;
     private Kontakt a;
 
@@ -103,15 +99,15 @@ public class IspitDetailActivity extends AppCompatActivity {
         ListView listview = (ListView) findViewById(R.id.ispit_kontak_broj_telefona);
 
         if (listview != null){
-            ArrayAdapter<Movie> adapter = (ArrayAdapter<Movie>) listview.getAdapter();
+            ArrayAdapter<Kontakt> adapter = (ArrayAdapter<Kontakt>) listview.getAdapter();
 
             if(adapter!= null)
             {
                 try {
                     adapter.clear();
-                    List<Movie> list = getDatabaseHelper().getMovieDao().queryBuilder()
+                    List<Kontakt> list = getDatabaseHelper().getKontaktDao().queryBuilder()
                             .where()
-                            .eq(Movie.FIELD_NAME_USER, a.getmId())
+                            .eq(Kontakt.FIELD_NAME_USER, a.getmId())
                             .query();
 
                     adapter.addAll(list);
@@ -128,7 +124,7 @@ public class IspitDetailActivity extends AppCompatActivity {
         NotificationManager mNotificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
         mBuilder.setSmallIcon(R.drawable.ic_launcher);
-        mBuilder.setContentTitle("Pripremni test");
+        mBuilder.setContentTitle("zadatakIspit");
         mBuilder.setContentText(message);
 
         Bitmap bm = BitmapFactory.decodeResource(getResources(), R.drawable.ic_action_add);
@@ -161,34 +157,34 @@ public class IspitDetailActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
-            case R.id.priprema_add_movie:
-                //OTVORI SE DIALOG UNESETE INFORMACIJE
-                final Dialog dialog = new Dialog(this);
-                dialog.setContentView(R.layout.priprema_add_movie);
+            case R.id.ispit_add_kontakt:
 
-                Button add = (Button) dialog.findViewById(R.id.add_movie);
+                final Dialog dialog = new Dialog(this);
+                dialog.setContentView(R.layout.ispit_add_kontakt);
+
+                Button add = (Button) dialog.findViewById(R.id.add_kontakt);
                 add.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        EditText name = (EditText) dialog.findViewById(R.id.movie_name);
-                        EditText genre = (EditText) dialog.findViewById(R.id.movie_genre);
-                        EditText year = (EditText) dialog.findViewById(R.id.movie_year);
+                        EditText name = (EditText) dialog.findViewById(R.id.kontakt_name);
+                        EditText surname = (EditText) dialog.findViewById(R.id.kontakt_surname);
+                        EditText address = (EditText) dialog.findViewById(R.id.kontakt_address);
 
-                        Movie m = new Movie();
+                        Kontakt m = new Kontakt();
                         m.setmName(name.getText().toString());
-                        m.setmGenre(genre.getText().toString());
-                        m.setmYear(year.getText().toString());
-                        m.setmUser(a);
+                        m.setmSurname(surname.getText().toString());
+                        m.setmAddress(address.getText().toString());
+                        m.setmKontakt(a);
 
                         try {
-                            getDatabaseHelper().getMovieDao().create(m);
+                            getDatabaseHelper().getKontaktDao().create(m);
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
-                        //URADITI REFRESH
+
                         refresh();
 
-                        showMessage("New movie added to actor");
+                        showMessage("New kontakt added");
 
                         dialog.dismiss();
                     }
@@ -197,30 +193,29 @@ public class IspitDetailActivity extends AppCompatActivity {
                 dialog.show();
 
                 break;
-            case R.id.priprema_edit:
-                //POKUPITE INFORMACIJE SA EDIT POLJA
+            case R.id.ispit_edit:
+
                 a.setmName(name.getText().toString());
-                a.setmBirth(birth.getText().toString());
-                a.setmBiography(bio.getText().toString());
-                a.setmScore(rating.getRating());
+                a.setmSurname(surname.getText().toString());
+                a.setmAddress(address.getText().toString());
 
                 try {
-                    getDatabaseHelper().getActorDao().update(a);
+                    getDatabaseHelper().getKontaktDao().update(a);
 
-                    showMessage("Actor detail updated");
+                    showMessage("Kontakt detail updated");
 
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
 
                 break;
-            case R.id.priprema_remove:
+            case R.id.ispit_remove:
                 try {
-                    getDatabaseHelper().getActorDao().delete(a);
+                    getDatabaseHelper().getKontaktDao().delete(a);
 
-                    showMessage("Actor deleted");
+                    showMessage("Kontakt deleted");
 
-                    finish(); //moramo pozvati da bi se vratili na prethodnu aktivnost
+                    finish();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -230,10 +225,10 @@ public class IspitDetailActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    //Metoda koja komunicira sa bazom podataka
-    public PripremaORMLightHelper getDatabaseHelper() {
+
+    public IspitDetailActivityORMLightHelper getDatabaseHelper() {
         if (databaseHelper == null) {
-            databaseHelper = OpenHelperManager.getHelper(this, PripremaORMLightHelper.class);
+            databaseHelper = OpenHelperManager.getHelper(this, IspitDetailActivityORMLightHelper.class);
         }
         return databaseHelper;
     }
@@ -243,8 +238,7 @@ public class IspitDetailActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        // nakon rada sa bazo podataka potrebno je obavezno
-        //osloboditi resurse!
+
         if (databaseHelper != null) {
             OpenHelperManager.releaseHelper();
             databaseHelper = null;

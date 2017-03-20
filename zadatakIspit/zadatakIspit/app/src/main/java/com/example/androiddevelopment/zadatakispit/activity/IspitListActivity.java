@@ -1,8 +1,38 @@
-package com.example.androiddevelopment.zadatakispit;
+package com.example.androiddevelopment.zadatakispit.activity;
 
-public class PripremaListActivity extends AppCompatActivity {
+import android.app.Dialog;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListAdapter;
+import android.widget.ListView;
+import android.widget.Toast;
 
-    private PripremaORMLightHelper databaseHelper;
+import com.example.androiddevelopment.zadatakispit.R;
+import com.example.androiddevelopment.zadatakispit.db.IspitORMLightHelper;
+import com.example.androiddevelopment.zadatakispit.db.model.Kontakt;
+import com.example.androiddevelopment.zadatakispit.dilog.AboutDialog;
+import com.j256.ormlite.android.apptools.OpenHelperManager;
+
+import java.util.List;
+
+public class IspitListActivity extends AppCompatActivity {
+
+    private IspitORMLightHelper databaseHelper;
     private SharedPreferences prefs;
 
     public static String KONTAKT_KEY = "KONTAKT_KEY";
@@ -12,7 +42,7 @@ public class PripremaListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.);
+        setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 
@@ -22,20 +52,20 @@ public class PripremaListActivity extends AppCompatActivity {
 
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-        final ListView listView = (ListView) findViewById(R.id.priprema_glumci_list);
+        final ListView listView = (ListView) findViewById(R.id.ispit_kontakt_list);
 
         try {
-            List<Actor> list = getDatabaseHelper().getActorDao().queryForAll();
+            List<Kontakt> list = getDatabaseHelper().getKontaktDao().queryForAll();
 
-            ListAdapter adapter = new ArrayAdapter<>(PripremaListActivity.this, R.layout.list_item, list);
+            ListAdapter adapter = new ArrayAdapter<>(IspitListActivity.this, R.layout.list_item, list);
             listView.setAdapter(adapter);
 
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    Actor p = (Actor) listView.getItemAtPosition(position);
+                   Kontakt p = (Kontakt) listView.getItemAtPosition(position);
 
-                    Intent intent = new Intent(PripremaListActivity.this, IspitDetailActivity.class);
-                    intent.putExtra(ACTOR_KEY, p.getmId());
+                    Intent intent = new Intent(IspitListActivity.this, IspitDetailActivity.class);
+                    intent.putExtra(KONTAKT_KEY, p.getmId());
                     startActivity(intent);
                 }
             });
@@ -60,16 +90,16 @@ public class PripremaListActivity extends AppCompatActivity {
     }
 
     private void refresh() {
-        ListView listview = (ListView) findViewById(R.id.priprema_glumci_list);
+        ListView listview = (ListView) findViewById(R.id.ispit_kontakt_list);
 
         if (listview != null){
-            ArrayAdapter<Actor> adapter = (ArrayAdapter<Actor>) listview.getAdapter();
+            ArrayAdapter<Kontakt> adapter = (ArrayAdapter<Kontakt>) listview.getAdapter();
 
             if(adapter!= null)
             {
                 try {
                     adapter.clear();
-                    List<Actor> list = getDatabaseHelper().getActorDao().queryForAll();
+                    List<Kontakt> list = getDatabaseHelper().getKontaktDao().queryForAll();
 
                     adapter.addAll(list);
 
@@ -85,13 +115,13 @@ public class PripremaListActivity extends AppCompatActivity {
         NotificationManager mNotificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
         mBuilder.setSmallIcon(R.drawable.ic_launcher);
-        mBuilder.setContentTitle("Pripremni test");
+        mBuilder.setContentTitle("zadatakIspit");
         mBuilder.setContentText(message);
 
         Bitmap bm = BitmapFactory.decodeResource(getResources(), R.drawable.ic_action_add);
 
         mBuilder.setLargeIcon(bm);
-        // notificationID allows you to update the notification later on.
+
         mNotificationManager.notify(1, mBuilder.build());
     }
 
@@ -99,42 +129,42 @@ public class PripremaListActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
 
         switch (item.getItemId()){
-            case R.id.priprema_add_new_actor:
-                //DIALOG ZA UNOS PODATAKA
-                final Dialog dialog = new Dialog(this);
-                dialog.setContentView(R.layout.priprema_add_actor_layout);
+            case R.id.ispit_add_new_kontakt:
 
-                Button add = (Button) dialog.findViewById(R.id.add_actor);
+                final Dialog dialog = new Dialog(this);
+                dialog.setContentView(R.layout.ispit_add_kontakt_layout);
+
+                Button add = (Button) dialog.findViewById(R.id.add_kontakt);
                 add.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        EditText name = (EditText) dialog.findViewById(R.id.actor_name);
-                        EditText bio = (EditText) dialog.findViewById(R.id.actor_biography);
-                        RatingBar rating = (RatingBar) dialog.findViewById(R.id.acrtor_rating);
-                        EditText birth = (EditText) dialog.findViewById(R.id.actor_birth);
+                        EditText name = (EditText) dialog.findViewById(R.id.kontakt_name);
+                        EditText surname = (EditText) dialog.findViewById(R.id.kontakt_biography);
+                        EditText address = (EditText) dialog.findViewById(R.id.kontakt_address;
+                        EditText broj_telefona = (EditText) dialog.findViewById(R.id.kontakt_broj_telefona);
 
-                        Actor a = new Actor();
+                        Kontakt a = new Kontakt();
                         a.setmName(name.getText().toString());
-                        a.setmBiography(bio.getText().toString());
-                        a.setmBirth(birth.getText().toString());
-                        a.setmScore(rating.getRating());
+                        a.setmSurname(surname.getText().toString());
+                        a.setmAddress(address.getText().toString());
+                        a.setmbroj_telefona(broj_telefona.toString());
 
                         try {
-                            getDatabaseHelper().getActorDao().create(a);
+                            getDatabaseHelper().getKontaktDao().create(a);
 
-                            //provera podesenja
+
                             boolean toast = prefs.getBoolean(NOTIF_TOAST, false);
                             boolean status = prefs.getBoolean(NOTIF_STATUS, false);
 
                             if (toast){
-                                Toast.makeText(PripremaListActivity.this, "Added new actor", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(IspitListActivity.this, "Added new kontakt", Toast.LENGTH_SHORT).show();
                             }
 
                             if (status){
-                                showStatusMesage("Added new actor");
+                                showStatusMesage("Added new kontakt");
                             }
 
-                            //REFRESH
+
                             refresh();
 
                         } catch (SQLException e) {
@@ -149,23 +179,23 @@ public class PripremaListActivity extends AppCompatActivity {
                 dialog.show();
 
                 break;
-            case R.id.priprema_about:
+            case R.id.ispit_about:
 
                 AlertDialog alertDialog = new AboutDialog(this).prepareDialog();
                 alertDialog.show();
                 break;
-            case R.id.priprema_preferences:
-                startActivity(new Intent(PripremaListActivity.this, PripremaPrefererences.class));
+            case R.id.ispit_preferences:
+                startActivity(new Intent(IspitListActivity.this, IspitListActivityPrefererences.class));
                 break;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    //Metoda koja komunicira sa bazom podataka
-    public PripremaORMLightHelper getDatabaseHelper() {
+
+    public IspitORMLightHelper getDatabaseHelper() {
         if (databaseHelper == null) {
-            databaseHelper = OpenHelperManager.getHelper(this, PripremaORMLightHelper.class);
+            databaseHelper = OpenHelperManager.getHelper(this, IspitORMLightHelper.class);
         }
         return databaseHelper;
     }
@@ -174,8 +204,7 @@ public class PripremaListActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        // nakon rada sa bazo podataka potrebno je obavezno
-        //osloboditi resurse!
+
         if (databaseHelper != null) {
             OpenHelperManager.releaseHelper();
             databaseHelper = null;
